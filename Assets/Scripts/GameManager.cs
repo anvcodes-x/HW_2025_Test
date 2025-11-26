@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -9,10 +10,9 @@ public class GameManager : MonoBehaviour
     public DoofusController player;
     public ConfigLoader configLoader;
     public GameObject pulpitPrefab;
-    
-
     public UIManager uiManager;
 
+    public bool isPlaying = false; 
     public int Score = 0;
     private List<Pulpit> activePulpits = new List<Pulpit>();
 
@@ -23,31 +23,45 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        StartCoroutine(StartGameLoop());
+        isPlaying = false;
+        StartCoroutine(LoadAndSetup());
     }
 
-    IEnumerator StartGameLoop()
+    IEnumerator LoadAndSetup()
     {
         yield return configLoader.LoadConfig();
+        if(uiManager != null) uiManager.ShowStartMenu();
+    }
 
-        if (ConfigLoader.Config == null) 
+    public void StartGame()
+    {
+        Score = 0;
+        if(uiManager != null) 
         {
-            Debug.LogError("CRITICAL ERROR: Config not loaded.");
-            yield break; 
+            uiManager.ShowHUD();
+            uiManager.UpdateScoreUI(Score);
         }
 
-        player.Initialize();
         SpawnPulpitAt(Vector3.zero);
         
-        Score = 0;
-        // Update UI at start
-        if(uiManager != null) uiManager.UpdateScoreUI(Score);
+        if(player != null) player.Initialize();
+        isPlaying = true;
+    }
+
+    public void GameOver()
+    {
+        isPlaying = false;
+        if(uiManager != null) uiManager.ShowGameOver(Score);
+    }
+
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     public void AddScore()
     {
         Score++;
-        // --- LEVEL 3 ADDITION: Update UI on screen ---
         if(uiManager != null) uiManager.UpdateScoreUI(Score);
     }
 
