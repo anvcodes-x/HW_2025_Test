@@ -27,7 +27,7 @@ public class GameManager : MonoBehaviour
 
     IEnumerator StartGameLoop()
     {
-        // Load config first
+        
         yield return configLoader.LoadConfig();
 
         if (ConfigLoader.Config == null)
@@ -36,10 +36,10 @@ public class GameManager : MonoBehaviour
             yield break;
         }
 
-        // Spawn 1st pulpit
+        
         SpawnPulpitAt(Vector3.zero);
 
-        // Reset score
+        
         Score = 0;
         if (uiManager) uiManager.UpdateScoreUI(Score);
 

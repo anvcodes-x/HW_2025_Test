@@ -3,7 +3,7 @@ using TMPro;
 
 public class UIManager : MonoBehaviour
 {
-    public TextMeshProUGUI scoreText; // Drag ScoreText here
+    public TextMeshProUGUI scoreText; 
 
     public void UpdateScoreUI(int newScore)
     {
