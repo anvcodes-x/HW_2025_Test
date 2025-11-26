@@ -23,13 +23,13 @@ public class GameManager : MonoBehaviour
 
     System.Collections.IEnumerator StartLevel1()
     {
-        // 1. Load Data
+        
         yield return configLoader.LoadConfig();
 
-        // 2. Initialize Player
+        
         player.Initialize();
 
-        // 3. Spawn First Pulpit
+        
         SpawnPulpitAt(Vector3.zero);
     }
 
