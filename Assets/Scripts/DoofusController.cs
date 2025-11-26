@@ -9,53 +9,37 @@ public class DoofusController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        
-        // 1. FREEZE PHYSICS COMPLETELY
-        // This makes Doofus ignore gravity and collisions until we say otherwise
-        rb.isKinematic = true; 
-    }
-
-    public void Initialize()
-    {
-        // 2. RESET POSITION
-        transform.position = new Vector3(0, 1, 0);
-        transform.rotation = Quaternion.identity;
-        
-        // 3. UNFREEZE PHYSICS
-        rb.isKinematic = false;
-        
-        // Unity 6 check: Use linearVelocity if available, otherwise velocity
-        // rb.linearVelocity = Vector3.zero; 
-        
-        currentPulpit = null;
-        
-        if (ConfigLoader.Config != null)
-        {
-            speed = ConfigLoader.Config.player_data.speed;
-        }
     }
 
     void Update()
     {
-        if (!GameManager.Instance.isPlaying) return;
+        // 1. Initialize Speed from Config if loaded
+        if (ConfigLoader.Config != null && speed == 3f) 
+        {
+            speed = ConfigLoader.Config.player_data.speed;
+        }
 
+        // 2. Movement
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
 
         Vector3 movement = new Vector3(h, 0, v).normalized * speed * Time.deltaTime;
         transform.Translate(movement, Space.World);
 
-        if (transform.position.y < -3f)
-        {
-            GameManager.Instance.GameOver();
-        }
-
+        // 3. Scoring Check
         CheckScore();
+        
+        // 4. Fall Check
+        if (transform.position.y < -5f)
+        {
+            Debug.Log("Game Over! (Fell off)");
+        }
     }
 
     void CheckScore()
     {
         RaycastHit hit;
+        // Shoot ray down to see what we are standing on
         if (Physics.Raycast(transform.position, Vector3.down, out hit, 2f))
         {
             if (hit.transform.GetComponent<Pulpit>() != null)

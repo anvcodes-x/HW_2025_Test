@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -10,9 +9,11 @@ public class GameManager : MonoBehaviour
     public DoofusController player;
     public ConfigLoader configLoader;
     public GameObject pulpitPrefab;
+    
+    // Added UI Reference back
     public UIManager uiManager;
 
-    public bool isPlaying = false; 
+    // Scoring
     public int Score = 0;
     private List<Pulpit> activePulpits = new List<Pulpit>();
 
@@ -23,47 +24,39 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        isPlaying = false;
-        StartCoroutine(LoadAndSetup());
+        // Start the game immediately!
+        StartCoroutine(StartGameLoop());
     }
 
-    IEnumerator LoadAndSetup()
+    IEnumerator StartGameLoop()
     {
+        // 1. Load Data
         yield return configLoader.LoadConfig();
-        if(uiManager != null) uiManager.ShowStartMenu();
-    }
 
-    public void StartGame()
-    {
-        Score = 0;
-        if(uiManager != null) 
+        if (ConfigLoader.Config == null) 
         {
-            uiManager.ShowHUD();
-            uiManager.UpdateScoreUI(Score);
+            Debug.LogError("CRITICAL ERROR: Config not loaded.");
+            yield break; 
         }
 
+        // 2. Spawn First Pulpit
         SpawnPulpitAt(Vector3.zero);
         
-        if(player != null) player.Initialize();
-        isPlaying = true;
-    }
-
-    public void GameOver()
-    {
-        isPlaying = false;
-        if(uiManager != null) uiManager.ShowGameOver(Score);
-    }
-
-    public void RestartGame()
-    {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        // 3. Reset Score & Update UI
+        Score = 0;
+        if(uiManager != null) uiManager.UpdateScoreUI(Score);
+        
+        Debug.Log("Game Started! Score: " + Score);
     }
 
     public void AddScore()
     {
         Score++;
+        // Update UI when score changes
         if(uiManager != null) uiManager.UpdateScoreUI(Score);
     }
+
+    // --- PULPIT SPAWNING LOGIC ---
 
     public void SpawnNextPulpit(Vector3 originPos)
     {
