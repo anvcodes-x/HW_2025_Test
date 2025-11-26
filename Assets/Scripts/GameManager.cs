@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -9,11 +10,8 @@ public class GameManager : MonoBehaviour
     public DoofusController player;
     public ConfigLoader configLoader;
     public GameObject pulpitPrefab;
-    
-    // Added UI Reference back
     public UIManager uiManager;
 
-    // Scoring
     public int Score = 0;
     private List<Pulpit> activePulpits = new List<Pulpit>();
 
@@ -24,57 +22,61 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        // Start the game immediately!
         StartCoroutine(StartGameLoop());
     }
 
     IEnumerator StartGameLoop()
     {
-        // 1. Load Data
+        // Load config first
         yield return configLoader.LoadConfig();
 
-        if (ConfigLoader.Config == null) 
+        if (ConfigLoader.Config == null)
         {
             Debug.LogError("CRITICAL ERROR: Config not loaded.");
-            yield break; 
+            yield break;
         }
 
-        // 2. Spawn First Pulpit
+        // Spawn 1st pulpit
         SpawnPulpitAt(Vector3.zero);
-        
-        // 3. Reset Score & Update UI
+
+        // Reset score
         Score = 0;
-        if(uiManager != null) uiManager.UpdateScoreUI(Score);
-        
-        Debug.Log("Game Started! Score: " + Score);
+        if (uiManager) uiManager.UpdateScoreUI(Score);
+
+        Debug.Log("Game Started! Score reset.");
     }
 
     public void AddScore()
     {
         Score++;
-        // Update UI when score changes
-        if(uiManager != null) uiManager.UpdateScoreUI(Score);
+        if (uiManager) uiManager.UpdateScoreUI(Score);
     }
 
-    // --- PULPIT SPAWNING LOGIC ---
+    public void GameOver()
+    {
+        Debug.Log("GAME OVER! Final Score: " + Score);
+
+        // Save score for End Scene
+        PlayerPrefs.SetInt("FinalScore", Score);
+
+        // Load End Scene
+        SceneManager.LoadScene("EndScene");
+    }
 
     public void SpawnNextPulpit(Vector3 originPos)
     {
         if (activePulpits.Count >= 2) return;
 
         float size = 9f;
-        Vector3[] directions = { 
-            new Vector3(size, 0, 0), new Vector3(-size, 0, 0), 
-            new Vector3(0, 0, size), new Vector3(0, 0, -size) 
+        Vector3[] dirs = {
+            new Vector3(size, 0, 0),
+            new Vector3(-size, 0, 0),
+            new Vector3(0, 0, size),
+            new Vector3(0, 0, -size)
         };
 
-        List<Vector3> validPositions = new List<Vector3>();
-        foreach (var dir in directions)
-        {
-            validPositions.Add(originPos + dir);
-        }
+        Vector3 spawnPos = dirs[Random.Range(0, dirs.Length)] + originPos;
 
-        Vector3 spawnPos = validPositions[Random.Range(0, validPositions.Count)];
         SpawnPulpitAt(spawnPos);
     }
 
@@ -82,10 +84,10 @@ public class GameManager : MonoBehaviour
     {
         GameObject go = Instantiate(pulpitPrefab, pos, Quaternion.identity);
         Pulpit p = go.GetComponent<Pulpit>();
-        
+
         float min = ConfigLoader.Config.pulpit_data.min_pulpit_destroy_time;
         float max = ConfigLoader.Config.pulpit_data.max_pulpit_destroy_time;
-        
+
         p.Initialize(Random.Range(min, max));
         activePulpits.Add(p);
     }
