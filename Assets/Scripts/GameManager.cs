@@ -56,10 +56,10 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("GAME OVER! Final Score: " + Score);
 
-        // Save score for End Scene
+        
         PlayerPrefs.SetInt("FinalScore", Score);
 
-        // Load End Scene
+        
         SceneManager.LoadScene("EndScene");
     }
 
